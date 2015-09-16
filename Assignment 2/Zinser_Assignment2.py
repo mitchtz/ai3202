@@ -30,22 +30,57 @@ def hueristic(heur_num, coord1, coord2):
 		#TODO create second heuristic
 	elif heur_num == 1:
 		pass
-'''
+
 #Function that takes in coordinates and the graph, and returns a list of the coordinates of the non-wall adjacent squares
 def get_adjacent(coord, graph):
+	#Check if passed in coordinates are out of range
+	if (coord[0] >= len(graph)) or (coord[0] < 0):
+		return [None]
+	if (coord[1] >= len(graph[coord[0]])) or (coord[1] < 0):
+		return [None]
+	#Store input coordinates as y and x for easier reading of the code
+	y = coord[0]
+	x = coord[1]
+	#Max value that y and x can be (-1 to account for 0 indexing)
+	y_max = len(graph)-1
+	x_max = len(graph[y])-1
 	#List of adjacent coordinates
 	adj = []
-	#Check 9 adjacent squares
+	#Check 8 adjacent squares
 	#Up Left
-	if graph[coord[0]-1][coord[1]-1] != "2"
+	#If not wall or out of index range for graph, add to adjacent list
+	if ((y>0) and (x>0)) and (graph[y-1][x-1] != 2):
+		adj.append((y-1,x-1))
 	#Up
+	#If not wall or out of index range for graph, add to adjacent list
+	if (y>0) and (graph[y-1][x] != 2):
+		adj.append((y-1,x))
 	#Up Right
+	#If not wall or out of index range for graph, add to adjacent list
+	if ((y>0) and (x<x_max)) and (graph[y-1][x+1] != 2):
+		adj.append((y-1,x+1))
 	#Left
+	#If not wall or out of index range for graph, add to adjacent list
+	if (x>0) and (graph[y][x-1] != 2):
+		adj.append((y,x-1))
 	#Right
+	#If not wall or out of index range for graph, add to adjacent list
+	if (x<x_max) and (graph[y][x+1] != 2):
+		adj.append((y,x+1))
 	#Down Left
+	#If not wall or out of index range for graph, add to adjacent list
+	if ((y<y_max) and (x>0)) and (graph[y+1][x-1] != 2):
+		adj.append((y+1,x-1))
 	#Down
+	#If not wall or out of index range for graph, add to adjacent list
+	if (y<y_max) and (graph[y+1][x] != 2):
+		adj.append((y+1,x))
 	#Down Right
-
+	#If not wall or out of index range for graph, add to adjacent list
+	if ((y<y_max) and (x<x_max)) and (graph[y+1][x+1] != 2):
+		adj.append((y+1,x+1))
+	return adj
+'''
 def a_star(start, end, heur_num, graph):
 	#Keep track of how many squares are evaluated
 	square_eval = 0
@@ -86,8 +121,8 @@ def a_star(start, end, heur_num, graph):
 					prev_square[#next coords] = cur coords TODO
 					#Increment squares evaluated
 					square_eval += 1
-
 '''
+
 #Only run this if file is being run directly
 if __name__ == "__main__":
 	#Get command line arguments
@@ -131,3 +166,8 @@ if __name__ == "__main__":
 	#Start path finding for graph1, calculate board squares
 	#a_star(start_square, end_square, graph1)
 	#Recreate path for graph1
+
+	'''Test Area'''
+	test_coord = (0,0)
+	print(test_coord)
+	print(get_adjacent(test_coord,graph1))
