@@ -1,6 +1,7 @@
 #Mitch Zinser
 #CSCI 3202 Assignment 2
 import sys #For getting command line arguments
+import queue #For Priority Queues
 #Variables that hold the names of the worlds
 world1 = "World1.txt"
 world2 = "World2.txt"
@@ -23,7 +24,7 @@ def create_graph(text_file):
 	return graph
 #Manhattan is |x1-x2| + |y1-y2|
 #Takes in the heuristic number to use, and the two coordinates to calculate
-def hueristic(heur_num, coord1, coord2):
+def heuristic(coord1, coord2, heur_num):
 	#Use Manhattan distance
 	if heur_num == 0:
 		return (abs(coord1[0] + coord2[1]) + abs(coord1[1] + coord2[1]))
@@ -80,12 +81,34 @@ def get_adjacent(coord, graph):
 	if ((y<y_max) and (x<x_max)) and (graph[y+1][x+1] != 2):
 		adj.append((y+1,x+1))
 	return adj
-'''
+#Function that calculates the cost to go from one square to another adjacent square
+#Takes in the current coordinates and the coordinates of the square to move to
+def get_cost(cur_coord, next_coord, graph):
+	#Check if move is horizontal or vertical by seeing if one axis doesn't change
+	if (cur_coord[0] == next_coord[0]) or (cur_coord[1] == next_coord[1]):
+		#Horizontal or vertical moves cost 10
+		#Check if moving into mountain
+		if graph[next_coord[0]][next_coord[1]] == 1:
+			#Moving into a mountain costs 10 extra
+			return 20
+		#Return cost to move horizontally or vertically
+		return 10
+
+	#Else move is diagonal
+	else:
+		#Diagonal moves cost 14
+		#Check if moving into mountain
+		if graph[next_coord[0]][next_coord[1]] == 1:
+			#Moving into a mountain costs 10 extra
+			return 24
+		#Return cost to move diagonally
+		return 14
+
 def a_star(start, end, heur_num, graph):
 	#Keep track of how many squares are evaluated
 	square_eval = 0
 	#Priority queue for evaluating border in order
-	border = PriorityQueue()
+	border = queue.PriorityQueue()
 	#Put the first point int eh queue
 	border.put(start, 0)
 	#Dictionary to store where each square in the grid comes from when traversing
@@ -101,27 +124,29 @@ def a_star(start, end, heur_num, graph):
 		#Get next grid square to evaluate from queue
 		cur = border.get()
 		#Check to see if we have reached our goal
-		if cur == goal:
+		if cur == end:
 			done = True
 		#If we aren't at goal, evaluate square
 		if not done:
 			#Iterate through the neightbors of the current square
-			for next in get_adjacent(cur, graph) #TODO make function:
+			for next in get_adjacent(cur, graph): #TODO make function DONE
 				#Calculate new cost for 
-				new_cost = cost[cur] + #Calculate cost from this square to next #TODO
+				new_cost = cost[cur] + get_cost(cur, next, graph) #Calculate cost from this square to next #TODO DONE
 				#If the square has not been cost calcuated yet or the new cost is less than previous evaluations
 				if ((next not in cost) or (new_cost < cost[next])):
 					#Update cost to this square
 					cost[next]= new_cost
 					#Set priority by adding cost to get her + hueristic cost to goal
-					prior = new_cost + #heuristic TODO
+					priority = new_cost + heuristic(cur, next, heur_num) #heuristic TODO DONE
 					#Add square to the priority queue to evaluate
-					border.put(#Next coords, prior) #TODO
+					border.put(next, priority) #TODO DONE
 					#Update previous square
-					prev_square[#next coords] = cur coords TODO
+					prev_square[next] = cur #TODO DONE
 					#Increment squares evaluated
 					square_eval += 1
-'''
+	#Return the two dictionaries (previous square dict and cost dict)
+	return (prev_square, cost)
+
 
 #Only run this if file is being run directly
 if __name__ == "__main__":
@@ -164,10 +189,13 @@ if __name__ == "__main__":
 	#Endis at top right corner
 	end_square = (0, len(graph1[0])-1)
 	#Start path finding for graph1, calculate board squares
-	#a_star(start_square, end_square, graph1)
+	came_from, square_cost = a_star(start_square, end_square, heur, graph1)
+	'''
+	print("--------Came From--------")
+	[print(i, came_from[i]) for i in came_from]
+	print("--------Square Cost--------")
+	[print(i, square_cost[i]) for i in square_cost]
+	'''
 	#Recreate path for graph1
-
 	'''Test Area'''
-	test_coord = (0,0)
-	print(test_coord)
-	print(get_adjacent(test_coord,graph1))
+	##print(get_cost((0,1), (1,2), graph1))
