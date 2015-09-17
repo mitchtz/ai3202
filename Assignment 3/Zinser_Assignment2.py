@@ -160,7 +160,7 @@ def a_star(start, end, heur_num, graph):
 		#If we aren't at goal, evaluate square
 		if not done:
 			#Iterate through the neightbors of the current square
-			for next in get_adjacent(cur, graph): #TODO make function DONE
+			for next in get_adjacent(cur, graph):
 				#Calculate new cost for 
 				new_cost = cost[cur] + get_cost(cur, next, graph) #Calculate cost from this square to next #TODO DONE
 				#If the square has not been cost calcuated yet or the new cost is less than previous evaluations
@@ -170,13 +170,36 @@ def a_star(start, end, heur_num, graph):
 					#Set priority by adding cost to get her + hueristic cost to goal
 					priority = new_cost + heuristic(cur, next, heur_num) #heuristic TODO DONE
 					#Add square to the priority queue to evaluate
-					border.put((priority, next)) #TODO DONE
+					border.put((priority, next))
 					#Update previous square
-					prev_square[next] = cur #TODO DONE
+					prev_square[next] = cur
 	#Return the two dictionaries (previous square dict and cost dict)
 	##return (prev_square, cost)
 	#Return most efficient path, cost to get there, and number of squares that have been explored
 	return reconstruct_path(start, end, prev_square), cost[(end[0], end[1])], len(cost)
+
+#Prett print graph out
+def print_graph(start, end, graph):
+	print("Start = S\nEnd = E")
+	graph[start[0]][start[1]] = "S"
+	graph[end[0]][end[1]] = "E"
+	border = "|"
+	border += ("-"*len(graph[0]))+"|"
+	print(border)
+	for i in graph:
+		line = "|"
+		for j in i:
+			if j == 0:
+				line += " "
+			elif j == 1:
+				line += "^"
+			elif j == 2:
+				line += "@"
+			else:
+				line += j
+		print(line+"|")
+	print(border)
+
 
 #Only run this if file is being run directly
 if __name__ == "__main__":
@@ -230,7 +253,18 @@ if __name__ == "__main__":
 	print(path_cost)
 	print("--------Squares Evaluated--------")
 	print(evaluated)
+	##print("--------Graph1--------")
+	##print_graph(start_square, end_square, graph1)
+	##print("--------Graph1 with path marked with X--------")
+	graph1_solved = graph1
+	for i in path:
+		graph1_solved[i[0]][i[1]] = "X"
+	##print_graph(start_square, end_square, graph1_solved)
 
+	#Start is at the bottom left corner
+	start_square = (len(graph2)-1, 0)
+	#Endis at top right corner
+	end_square = (0, len(graph2[0])-1)
 	print("================Calculating A* for graph2================")
 	#Start path finding for graph1, calculate board squares
 	path, path_cost, evaluated = a_star(start_square, end_square, heur, graph2)
@@ -240,14 +274,35 @@ if __name__ == "__main__":
 	print(path_cost)
 	print("--------Squares Evaluated--------")
 	print(evaluated)
+	##print("--------Graph2--------")
+	##print_graph(start_square, end_square, graph2)
+	##print("--------Graph2 with path marked with X--------")
+	graph2_solved = graph2
+	for i in path:
+		graph2_solved[i[0]][i[1]] = "X"
+	##print_graph(start_square, end_square, graph2_solved)
 
 	'''Test Area'''
-	##print(get_cost((0,1), (1,2), graph1))
 	'''
-	print("--------Test graph--------")
-	path, path_cost = a_star((0,0), (5,10), 0, create_graph("test_world.txt"))
+	cust_graph = create_graph("Custom_graph.txt")
+	#Start is at the bottom left corner
+	start_square = (len(cust_graph)-1, 0)
+	#Endis at top right corner
+	end_square = (0, len(cust_graph[0])-1)
+	print("================Calculating A* for custom graph================")
+	#Start path finding for graph1, calculate board squares
+	path, path_cost, evaluated = a_star(start_square, end_square, heur, cust_graph)
 	print("--------Path--------")
 	print(path)
 	print("--------Path Cost--------")
 	print(path_cost)
+	print("--------Squares Evaluated--------")
+	print(evaluated)
+	print("--------Graph2--------")
+	print_graph(start_square, end_square, cust_graph)
+	print("--------Graph2 with path marked with X--------")
+	cust_graph_solved = cust_graph
+	for i in path:
+		cust_graph_solved[i[0]][i[1]] = "X"
+	print_graph(start_square, end_square, cust_graph_solved)
 	'''
