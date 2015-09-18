@@ -22,6 +22,7 @@ In World1, the Manhattan distance evaluated/changed square costs 64 times.
 In World1, the second heuristic evaluates.changes square costs 62 times.
 In World2, both heuristics evaluated/changed square costs 62 times.
 
+Performance Analysis:
 This means that the second heuristic was only a little more efficient in the
 first world, and only in terms of squares evaluated/changed. The paths and
 final costs ended up being the same for both heuristics.
