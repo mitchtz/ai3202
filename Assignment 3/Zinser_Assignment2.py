@@ -23,25 +23,22 @@ def create_graph(text_file):
 				graph.append([int(x) for x in line])
 	#Return the graph
 	return graph
-#Manhattan is |x1-x2| + |y1-y2|
 #Takes in the heuristic number to use, and the two coordinates to calculate
 #Returns heuristic cost to get to end (int)
 def heuristic(coord1, coord2, heur_num):
 	#Use Manhattan distance
 	if heur_num == 0:
 		return (abs(coord1[0] + coord2[0]) + abs(coord1[1] + coord2[1]))
-		#TODO create second heuristic
-		#Try making heuristic that just computes direct distnace between points
+	#Use custom heuristic
 	elif heur_num == 1:
-		'''
-		a = coord1[0] + coord2[0]
-		b = coord1[1] + coord2[1]
-		return math.sqrt(pow(a, 2) + pow(b, 2))
-		'''
-		dx = abs(coord1[1] - coord2[1])
-		dy = abs(coord1[0] - coord2[0])
-		return D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
-		
+		x = abs(coord1[1] - coord2[1])
+		y = abs(coord1[0] - coord2[0])
+		#Calculate the manhattan distance (uses right angles to get to goal, meaning all horizontal or vertical moves)
+		#Calculate the linear distance (Probably more diagonal moves rather than horizontal or vertical)
+		#Multiply Manhattan distance by 10 (mostly 10 cost moves)
+		#Multiply the linear distance by 14 (mostly diagonal moves)
+		#Return the minimum of the 2 costs
+		return int(min((10 * (x + y)),(14*math.sqrt(pow(x, 2) + pow(y, 2)))))
 
 #Function that takes in coordinates and the graph, and returns a list of the coordinates of the non-wall adjacent squares
 #Returns list of of coordinates that are adjacent squares
@@ -138,6 +135,7 @@ def reconstruct_path(coord_start, coord_end, prev_square):
 #Takes in start coordinates, end coordinates, heuristic number, and graph to evaluate
 #Returns list that is the most efficient path, cost to get there, and number of square explored
 def a_star(start, end, heur_num, graph):
+	squares_eval = 0
 	#Priority queue for evaluating border in order
 	border = queue.PriorityQueue()
 	#Put the first point int eh queue
@@ -156,27 +154,31 @@ def a_star(start, end, heur_num, graph):
 		cur = border.get()[1]
 		#Check to see if we have reached our goal
 		if cur == end:
+			#break
 			done = True
+
 		#If we aren't at goal, evaluate square
 		if not done:
 			#Iterate through the neightbors of the current square
 			for next in get_adjacent(cur, graph):
-				#Calculate new cost for 
-				new_cost = cost[cur] + get_cost(cur, next, graph) #Calculate cost from this square to next #TODO DONE
+				#Calculate new cost for getting to this square and getting to the next
+				new_cost = cost[cur] + get_cost(cur, next, graph)
 				#If the square has not been cost calcuated yet or the new cost is less than previous evaluations
 				if ((next not in cost) or (new_cost < cost[next])):
 					#Update cost to this square
 					cost[next] = new_cost
 					#Set priority by adding cost to get her + hueristic cost to goal
-					priority = new_cost + heuristic(cur, next, heur_num) #heuristic TODO DONE
+					priority = new_cost + heuristic(cur, next, heur_num)
+					
 					#Add square to the priority queue to evaluate
 					border.put((priority, next))
 					#Update previous square
 					prev_square[next] = cur
+					squares_eval += 1
 	#Return the two dictionaries (previous square dict and cost dict)
 	##return (prev_square, cost)
 	#Return most efficient path, cost to get there, and number of squares that have been explored
-	return reconstruct_path(start, end, prev_square), cost[(end[0], end[1])], len(cost)
+	return reconstruct_path(start, end, prev_square), cost[(end[0], end[1])], squares_eval
 
 #Prett print graph out
 def print_graph(start, end, graph):
@@ -215,7 +217,7 @@ if __name__ == "__main__":
 		print("Valid command line arguments: None or numbers 0 or 1")
 		print("No command line arguments: Use default heuristic (Manhattan distance)")
 		print("0: Manhattan distance")
-		print("1: (Fill in with heuristic)") #TODO
+		print("1: Custom heuristic")
 	#Else user has input 2 arguments. Set heuristic to users choice
 	else:
 		#Check that user is only using valid heuristic choices
@@ -224,13 +226,13 @@ if __name__ == "__main__":
 			print("Using Manhattan distance")
 		elif sys.argv[1] == "1":
 			heur = 1
-			print("Using (Fill in heuristic)") #TODO
+			print("Using Custom heuristic")
 		else:
 			print("Invalid command line argument")
 			print("Valid command line arguments: None or numbers 0 or 1")
 			print("No command line arguments: Use default heuristic (Manhattan distance)")
 			print("0: Manhattan distance")
-			print("1: (Fill in with heuristic)") #TODO
+			print("1: Custom heuristic")
 	#Variables that hold the names of the worlds
 	world1 = "World1.txt"
 	world2 = "World2.txt"
@@ -253,13 +255,13 @@ if __name__ == "__main__":
 	print(path_cost)
 	print("--------Squares Evaluated--------")
 	print(evaluated)
-	##print("--------Graph1--------")
-	##print_graph(start_square, end_square, graph1)
-	##print("--------Graph1 with path marked with X--------")
+	print("--------Graph1--------")
+	print_graph(start_square, end_square, graph1)
+	print("--------Graph1 with path marked with X--------")
 	graph1_solved = graph1
 	for i in path:
 		graph1_solved[i[0]][i[1]] = "X"
-	##print_graph(start_square, end_square, graph1_solved)
+	print_graph(start_square, end_square, graph1_solved)
 
 	#Start is at the bottom left corner
 	start_square = (len(graph2)-1, 0)
@@ -274,13 +276,13 @@ if __name__ == "__main__":
 	print(path_cost)
 	print("--------Squares Evaluated--------")
 	print(evaluated)
-	##print("--------Graph2--------")
-	##print_graph(start_square, end_square, graph2)
-	##print("--------Graph2 with path marked with X--------")
+	print("--------Graph2--------")
+	print_graph(start_square, end_square, graph2)
+	print("--------Graph2 with path marked with X--------")
 	graph2_solved = graph2
 	for i in path:
 		graph2_solved[i[0]][i[1]] = "X"
-	##print_graph(start_square, end_square, graph2_solved)
+	print_graph(start_square, end_square, graph2_solved)
 
 	'''Test Area'''
 	'''
