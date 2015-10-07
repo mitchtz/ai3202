@@ -324,7 +324,9 @@ if __name__ == "__main__":
 	for i in path:
 		solved[i[0]][i[1]] = "X"
 	print_graph(start_square, end_square, solved)
-	##print(path)
+	print("--------Printed path and Utility--------")
+	for i in path:
+		print(i, "--", utility[i])
 
 	'''Test Area'''
 	'''
