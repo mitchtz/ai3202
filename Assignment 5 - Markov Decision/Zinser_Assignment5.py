@@ -69,7 +69,7 @@ def reconstruct_path(coord_start, coord_end, prev_square):
 #Function that constructs the path from the mdp using the direction dictionary
 #Takes in the direction dictionary, the start point coordinates, and the end point coordinates
 #Returns list that is the path
-def construct_path(dir_dict,start,end):
+def construct_path(dir_dict,start,end,util):
 	
 	#Set current square as start
 	cur = start
@@ -79,6 +79,8 @@ def construct_path(dir_dict,start,end):
 	##print(cur,dir_dict[cur])
 	#Limit the number of times the loop can run in case path is never found
 	loop_i = 0
+	#Total utility of the path
+	tot_util = util[cur]
 	while cur != end:
 		#Check if we are stuck in a loop, limit iterations of loop
 		if loop_i > 100:
@@ -109,7 +111,10 @@ def construct_path(dir_dict,start,end):
 			#Add square to path
 			##print(cur,"3")
 			path.append(cur)
+		tot_util += util[cur]
 		loop_i += 1
+	print("--------Total utility--------")
+	print(tot_util)
 	return path
 #Function that calculates the utility of going in each direction from the passed in
 #coordinates and finds the direction that yields the most utility
@@ -245,7 +250,7 @@ def mdp(graph,discount,epsilon,start_coord,end_coord):
 				print("("+str(i)+","+str(j)+") None")
 	'''
 	print("--------Constructing path--------")
-	best_path = construct_path(util_direction,start_coord,end_coord)
+	best_path = construct_path(util_direction,start_coord,end_coord,util)
 	#best_path = []
 	return (util,util_direction,best_path,iterations)
 #Pretty print graph out
