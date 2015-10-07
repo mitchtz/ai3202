@@ -19,60 +19,63 @@ chooses the up direction and gets caught in the snake field. However,
 when choosing a small epsilon (less than 16 for world2.txt), the 
 correct and most efficient path is chosen.
 #Testing Epsilon Values
-" " = Blank Space
+Epsilon = 0-35 Path
 
-"X" = Path
+7,0
 
-"@" = Wall
+6,0
 
-"^" = Mountain
+5,0
 
-"%" = Snake
+4,0
 
-"B" = Barn
-Epsilon = 0-35
+4,1
 
-|----------|
+3,1
 
-|    XXXXXE|
+2,1
 
-|@@^^X%@ @ |
+2,2
 
-| XXXX%@   |
+2,3
 
-|@X@@ % B@ |
+2,4
 
-|XX@  @^%^ |
+1,4
 
-|X%@  @  @ |
+0,4
 
-|X%@ ^@ ^@@|
+0,5
 
-|S         |
+0,6
 
-|----------|
+0,7
 
-Epsilon > 35
+0,8
 
-|----------|
+0,9
 
-|         E|
+Epsilon > 35 Path
 
-|@@^^ %@ @ |
+7,0
 
-| X   %@   |
+6,0
 
-|@X@@ % B@ |
+5,0
 
-|XX@  @^%^ |
+4,0
 
-|X%@  @  @ |
+4,1
 
-|X%@ ^@ ^@@|
+3,1
 
-|S         |
+2,1
 
-|----------|
+3,1
+
+2,1
+
+Loops between 3,1 and 2,1 indefinitely
 
 When epsilon is greater than 35 in the World1 map, the path is unlikely
-to be found, as a loop is present between the barn and the 
+to be found, as a loop is present between the barn and the space above it.

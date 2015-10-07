@@ -229,8 +229,6 @@ def mdp(graph,discount,epsilon,start_coord,end_coord):
 		#print("D = " + str(d))
 	#Construct the best path
 	
-	print("--------Iterations--------")
-	print(iterations)
 	'''
 	print("--------Util dict--------")
 	#print(util)
@@ -326,6 +324,7 @@ if __name__ == "__main__":
 	for i in path:
 		solved[i[0]][i[1]] = "X"
 	print_graph(start_square, end_square, solved)
+	##print(path)
 
 	'''Test Area'''
 	'''
