@@ -1,7 +1,10 @@
 #Assignment 5
 Mitch Zinser
+
 CSCI 3202 - AI
+
 Assignment 5 - Markov Decision Process
+#Changing Epsilon
 Epsilon will only change the path when it is very large, and it changes 
 the path so that it never completes. The path never changes at lower 
 epsilon values because when it evaluates the maximum utility, my 
