@@ -1,6 +1,6 @@
 #Mitch Zinser
 #CSCI 3202 Assignment 6
-import getopt, sys
+import getopt, sys, itertools
 
 #Node class that stores its parents, its conditional probability
 class B_Node:
@@ -266,50 +266,47 @@ def conditional(graph, before, after):
 			#x|cs
 			elif (after == "cs") or (after == "sc"):
 				return conditional(graph,"d","c")
-				
-#Function to calculate the joint probability
-def joint(graph,a):
-	args = parse_string(a)
-	if len(args) == 2:
-		return conditional(graph,args[0],args[1]) * marginal(graph,a[1])[1]
-	else:
-		return conditional(graph,a[0],a[1]) * joint(a[1],a[2:])
-#Helper functino to return a list of variables from a string
-def parse_string(args):
-	#Store if the last character was a ~
-	skip = False
-	#List to store the individual args
-	arg_list = []
-	#Iterate through the characters of the args string
-	for i in args:
-		#If the last char was ~, reset skip and add ~ + current char to args list
-		if skip:
-			skip = False
-			arg_list.append("~"+i)
-		#Otherwise, last char was not ~
-		else:
-			#If current char is ~, set skip to true for next loop
-			if i == "~":
-				skip = True
-			#Otherwise add char to arg list
-			else:
-				arg_list.append(i)
-	return arg_list
-#Takes in string of args, returns list of all possible combos for args
-def joint_combo(args):
-	joint_combo = []
-	#Remove ~ from args
-	args = args.replace("~","")
-	joint_combo.append(args[0])
-	joint_combo.append("~" + args[0])
-	#Iterate through joint var list (Add first arg and ~first arg to joint var list)
-	for i in range(1, len(args)):
-		temp_list = []
-		for var in joint_combo:
-			temp_list.append(var + args[i])
-			temp_list.append(var + "~" + args[i])
-		joint_combo = temp_list
-	return joint_combo
+
+def psc_dist(graph):
+	#Get conditional dictionaries for each node
+	pol_cond = graph["Pollution"].get_conditional()
+	smoke_cond = graph["Smoker"].get_conditional()
+	canc_cond = graph["Cancer"].get_conditional()
+	#List for all joint probabilities
+	joint_dist = []
+	#Calculate all probability combinnations and add them to joint dist list
+	joint_dist.append(("psc",canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"]))
+	joint_dist.append(("ps~c",(1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"]))
+	joint_dist.append(("~psc",canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"]))
+	joint_dist.append(("~ps~c",(1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"]))
+	joint_dist.append(("p~sc",canc_cond["p~s"]*pol_cond["p"]*smoke_cond["~s"]))
+	joint_dist.append(("p~s~c",(1-canc_cond["p~s"])*pol_cond["p"]*smoke_cond["~s"]))
+	joint_dist.append(("~p~sc",canc_cond["~p~s"]*pol_cond["~p"]*smoke_cond["~s"]))
+	joint_dist.append(("~p~s~c",(1-canc_cond["~p~s"])*pol_cond["~p"]*smoke_cond["~s"]))
+	return joint_dist
+def psc_joint(graph,args):
+	#Get conditional dictionaries for each node
+	pol_cond = graph["Pollution"].get_conditional()
+	smoke_cond = graph["Smoker"].get_conditional()
+	canc_cond = graph["Cancer"].get_conditional()
+	#Case match and calculate probability
+	if a == "psc":
+		return(("psc",canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"]))
+	elif a == "ps~c":
+		return(("ps~c",(1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"]))
+	elif a == "p~sc":
+		return(("p~sc",canc_cond["p~s"]*pol_cond["p"]*smoke_cond["~s"]))
+	elif a == "~psc":
+		return(("~psc",canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"]))
+	elif a == "p~s~c":
+		return(("p~s~c",(1-canc_cond["p~s"])*pol_cond["p"]*smoke_cond["~s"]))
+	elif a == "~p~sc":
+		return(("~p~sc",canc_cond["~p~s"]*pol_cond["~p"]*smoke_cond["~s"]))
+	elif a == "~ps~c":
+		return(("~ps~c",(1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"]))
+	elif a == "~p~s~c":
+		return(("~p~s~c",(1-canc_cond["~p~s"])*pol_cond["~p"]*smoke_cond["~s"]))
+
 
 #Only run this if file is beng run directly
 if __name__ == "__main__":
@@ -394,12 +391,24 @@ if __name__ == "__main__":
 		elif o in ("-j"):
 			#print("flag", o)
 			#print("args", a)
-			print("Joint probability for",a)
-			if len(a) < 2:
-				print(marginal(b_network,a))
-			else:
-				print(joint(b_network,a))
+			#If the whole distribution table is requested
+			a_combos_upper = [''.join(i) for i in itertools.permutations("PSC",3)]
+			a_combos = [''.join(i) for i in itertools.permutations(a.replace("~",""),3)]
+			if a == "PSC" or a == "PCS" or a == "CPS" or a == "CSP" or a == "SPC" or a == "SCP":
+				dist = psc_dist(b_network)
+				#Table header
+				print("Joint Distribution Table")
+				#Colums header
+				print("Combo       Probability")
+				#List comprehension, iterate through list and print first item, the the space required to start the second item at space 10, then the second item
+				[print(i[0], " "*(10-len(i[0])),i[1]) for i in dist]
 			
-			#calcJointDistribution(b_network,a)
+			elif (a.replace("~","") in a_combos):#("p" in a) and ("s" in a) and ("c" in a):
+				#Calculate joint probability for input combo
+				joint = psc_joint(b_network,a)
+				print("Joint Probability for",joint[0],"=",joint[1])
+			else:
+				print("Not a valid -j option")
+				sys.exit(2)			
 		else:
 			assert False, "unhandled option"
