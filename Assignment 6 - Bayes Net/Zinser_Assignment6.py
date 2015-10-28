@@ -218,6 +218,9 @@ def conditional(graph, before, after):
 				denom.append(dys_cond["c"]*canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
 				denom.append(dys_cond["~c"]*(1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"])
 				return sum(numer)/sum(denom)
+			#x|cs
+			elif (after == "cs") or (after == "sc"):
+				return conditional(graph,"x","c")
 	#Dyspnoea
 	elif before.upper() == "D":
 		#Check if the probability is already calculated
@@ -260,7 +263,10 @@ def conditional(graph, before, after):
 			#d|c
 			elif after == "c":
 				return (conditional(graph,"c","d")*marginal(graph,"d")[1])/marginal(graph)[1]
-
+			#x|cs
+			elif (after == "cs") or (after == "sc"):
+				return conditional(graph,"d","c")
+				
 #Function to calculate the joint probability
 def joint(graph,a):
 	args = parse_string(a)
