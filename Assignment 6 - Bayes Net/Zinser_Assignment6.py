@@ -68,7 +68,193 @@ def marginal(graph, args):
 		return ("Dyspnoea", marg)
 #Function to calculate the conditional probability of the first arg (before) given the second arg(s) (after)
 def conditional(graph, before, after):
-	pass
+	tilde = False
+	#Check for tilde
+	if before[0] == "~":
+		tilde = True
+		before = before[1]
+	#Get conditional dictionaries for each node
+	pol_cond = graph["Pollution"].get_conditional()
+	smoke_cond = graph["Smoker"].get_conditional()
+	canc_cond = graph["Cancer"].get_conditional()
+	xray_cond = graph["XRay"].get_conditional()
+	dys_cond = graph["Dyspnoea"].get_conditional()
+	#Check for the before condition
+	#Pollution
+	if before.upper() == "P":
+		#Check if the probability is already calculated
+		if after in pol_cond:
+			return pol_cond[after]
+		#Otherwise start case matching
+		elif tilde:
+			#If ~p|d
+			if after == "d":
+				return (conditional(graph,"d","~p")*pol_cond["~p"])/marginal(graph,"D")[1]
+			#If ~p|c
+			elif after == "c":
+				return (conditional(graph,"c","~p")*pol_cond["~p"])/marginal(graph,"c")[1]
+			#~p|cs
+			elif (after == "cs") or (after == "sc"):
+				#Numerator
+				numer = canc_cond["~ps"]*smoke_cond["s"]*pol_cond["~p"]
+				#Denominator
+				denom = canc_cond["~ps"]*smoke_cond["s"]*pol_cond["~p"]+canc_cond["ps"]*smoke_cond["s"]*pol_cond["p"]
+				return numer/denom
+			#~p|ds
+			elif (after == "ds") or (after == "sd"):
+				#Store Numerator and Denomerator
+				numer = []
+				denom = []
+				#Calculate numerators
+				numer.append(dys_cond["c"]*canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				numer.append(dys_cond["~c"]*(1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"])
+				denom.append(dys_cond["c"]*canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				denom.append(dys_cond["c"]*canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
+				denom.append(dys_cond["~c"]*(1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"])
+				denom.append(dys_cond["~c"]*(1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"])
+				#Calculate denominators
+				return sum(numer)/sum(denom)
+	#Smoking
+	elif before.upper() == "S":
+		#Check if the probability is already calculated
+		if after in smoke_cond:
+			return smoke_cond[after]
+		#Otherwise start case matching
+		elif not tilde:
+			#s|c
+			if after == "c":
+				return (conditional(graph,"c","s")*smoke_cond["s"])/marginal(graph,"c")[1]
+			#s|d
+			elif after == "d":
+				return (conditional(graph,"d","s")*smoke_cond["s"])/marginal(graph,"d")[1]
+	#Cancer
+	elif before.upper() == "C":
+		#Check if the probability is already calculated
+		if after in canc_cond:
+			return canc_cond[after]
+		#Otherwise start case matching
+		elif not tilde:
+			#c|s
+			if after == "s":
+				return ((canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])+(canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"]))/smoke_cond["s"]
+			#c|ds
+			elif (after == "ds") or (after =="sd"):
+				#Store Numerator and Denomerator
+				numer = []
+				denom = []
+				#Calculate numerators
+				numer.append(dys_cond["c"]*canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
+				numer.append(dys_cond["c"]*canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				#Calculate denominators
+				denom.append(dys_cond["c"]*canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
+				denom.append(dys_cond["c"]*canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				denom.append(dys_cond["~c"]*(1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"])
+				denom.append(dys_cond["~c"]*(1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"])
+				return sum(numer)/sum(denom)
+			#c|d
+			elif after == "d":
+				return (dys_cond["c"]*marginal(graph,"c")[1])/marginal(graph,"d")[1]
+			#c|~p
+			elif after == "~p":
+				#Store Numerator
+				numer = []
+				#Calculate numerator
+				numer.append(canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				numer.append(canc_cond["~p~s"]*pol_cond["~p"]*smoke_cond["~s"])
+				return sum(numer)/pol_cond["~p"]
+			#c|p
+			elif after == "p":
+				#Store Numerator
+				numer = []
+				#Calculate numerator
+				numer.append(canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
+				numer.append(canc_cond["p~s"]*pol_cond["p"]*smoke_cond["~s"])
+				return sum(numer)/pol_cond["p"]
+	#XRay
+	elif before.upper() == "X":
+		#Check if the probability is already calculated
+		if after in xray_cond:
+			return xray_cond[after]
+		#Otherwise start case matching
+		elif not tilde:
+			#x|s
+			if after == "s":
+				#Store Numerator and Denomerator
+				numer = []
+				denom = []
+				#Calculate numerators
+				numer.append(xray_cond["c"]*(canc_cond["ps"]*smoke_cond["s"]*pol_cond["p"]))
+				numer.append(xray_cond["c"]*(canc_cond["~ps"]*smoke_cond["s"]*pol_cond["~p"]))
+				numer.append(xray_cond["~c"]*((1-canc_cond["ps"])*smoke_cond["s"]*pol_cond["p"]))
+				numer.append(xray_cond["~c"]*((1-canc_cond["~ps"])*smoke_cond["s"]*pol_cond["~p"]))
+				#Calculate denominators
+				denom.append(canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
+				denom.append(canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				denom.append((1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"])
+				denom.append((1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"])
+				return sum(numer)/sum(denom)
+			#x|d
+			elif after == "d":
+				return (((xray_cond["c"]*marginal(graph,"c")[1]*dys_cond["c"])+(xray_cond["~c"]*marginal(graph,"~c")[1]*dys_cond["~c"]))/marginal(graph,"d")[1])
+			#x|ds
+			elif (after == "ds") or (after == "sd"):
+				#Store Numerator and Denomerator
+				numer = []
+				denom = []
+				#Calculate numerators
+				numer.append(xray_cond["c"]*dys_cond["c"]*canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				numer.append(xray_cond["~c"]*dys_cond["~c"]*(1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"])
+				numer.append(xray_cond["c"]*dys_cond["c"]*canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
+				numer.append(xray_cond["~c"]*dys_cond["~c"]*(1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"])
+				#Calculate denominators
+				denom.append(dys_cond["c"]*canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				denom.append(dys_cond["~c"]*(1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"])
+				denom.append(dys_cond["c"]*canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
+				denom.append(dys_cond["~c"]*(1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"])
+				return sum(numer)/sum(denom)
+	#Dyspnoea
+	elif before.upper() == "D":
+		#Check if the probability is already calculated
+		if after in dys_cond:
+			return dys_cond[after]
+		#Otherwise start case matching
+		elif not tilde:
+			#d|~p
+			if after == "~p":
+				#Store Numerator and Denomerator
+				numer = []
+				denom = []
+				#Calculate numerators
+				numer.append(dys_cond["c"]*(canc_cond["~ps"]*smoke_cond["s"]*pol_cond["~p"]))
+				numer.append(dys_cond["c"]*(canc_cond["~p~s"]*smoke_cond["~s"]*pol_cond["~p"]))
+				numer.append(dys_cond["~c"]*((1-canc_cond["~ps"])*smoke_cond["s"]*pol_cond["~p"]))
+				numer.append(dys_cond["~c"]*((1-canc_cond["~p~s"])*smoke_cond["~s"]*pol_cond["~p"]))
+				#Calculate denominators
+				denom.append(canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				denom.append(canc_cond["~p~s"]*pol_cond["~p"]*smoke_cond["~s"])
+				denom.append((1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"])
+				denom.append((1-canc_cond["~p~s"])*pol_cond["~p"]*smoke_cond["~s"])
+				return sum(numer)/sum(denom)
+			#d|s
+			elif after == "s":
+				#Store Numerator and Denomerator
+				numer = []
+				denom = []
+				#Calculate numerators
+				numer.append(dys_cond["c"]*(canc_cond["ps"]*smoke_cond["s"]*pol_cond["p"]))
+				numer.append(dys_cond["c"]*(canc_cond["~ps"]*smoke_cond["s"]*pol_cond["~p"]))
+				numer.append(dys_cond["~c"]*((1-canc_cond["ps"])*smoke_cond["s"]*pol_cond["p"]))
+				numer.append(dys_cond["~c"]*((1-canc_cond["~ps"])*smoke_cond["s"]*pol_cond["~p"]))
+				#Calculate denominators
+				denom.append(canc_cond["ps"]*pol_cond["p"]*smoke_cond["s"])
+				denom.append(canc_cond["~ps"]*pol_cond["~p"]*smoke_cond["s"])
+				denom.append((1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"])
+				denom.append((1-canc_cond["~ps"])*pol_cond["~p"]*smoke_cond["s"])
+				return sum(numer)/sum(denom)
+			#d|c
+			elif after == "c":
+				return (conditional(graph,"c","d")*marginal(graph,"d")[1])/marginal(graph)[1]
+
 #Function to calculate the joint probability
 def joint(graph, args):
 	var_list = parse_string(args)
@@ -113,8 +299,10 @@ if __name__ == "__main__":
 	#Set conditional probabilities for each node
 	#Pollution
 	b_network["Pollution"].set_conditional("p",0.9) #Low pol
+	b_network["Pollution"].set_conditional("~p",0.1) #High pol
 	#Smoker
 	b_network["Smoker"].set_conditional("s",0.3) #Smoker
+	b_network["Smoker"].set_conditional("~s",0.7) #Not smoker
 	#Cancer
 	b_network["Cancer"].set_conditional("~ps",0.05) #High pol, smoker
 	b_network["Cancer"].set_conditional("~p~s",0.02) #High pol, not smoker
@@ -149,10 +337,12 @@ if __name__ == "__main__":
 			if a[0] == "P":
 				#Change prior
 				b_network["Pollution"].set_conditional("p",float(a[1:]))
+				b_network["Pollution"].set_conditional("~p",1-float(a[1:]))
 			#If Smoker
 			elif a[0] == "S":
 				#Change prior
 				b_network["Smoker"].set_conditional("s",float(a[1:]))
+				b_network["Smoker"].set_conditional("~s",1-float(a[1:]))
 		elif o in ("-m"):
 			#print("flag", o)
 			#print("args", a)
@@ -167,9 +357,10 @@ if __name__ == "__main__":
 			and right of l as arguments to calcConditional
 			'''
 			p = a.find("l")
-			print(a[:p])
-			print(a[p+1:])
+			print(a[:p],"given",a[p+1:])
+			#print(a[p+1:])
 			cond = conditional(b_network,a[:p],a[p+1:])
+			print(cond)
 		elif o in ("-j"):
 			print("flag", o)
 			print("args", a)
