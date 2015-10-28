@@ -117,6 +117,9 @@ def conditional(graph, before, after):
 				denom.append(dys_cond["~c"]*(1-canc_cond["ps"])*pol_cond["p"]*smoke_cond["s"])
 				#Calculate denominators
 				return sum(numer)/sum(denom)
+			#~p|s Independant, just marginal of p ~p
+			elif after == "s":
+				return marginal(graph,"~p")[1]
 	#Smoking
 	elif before.upper() == "S":
 		#Check if the probability is already calculated
@@ -259,9 +262,12 @@ def conditional(graph, before, after):
 				return (conditional(graph,"c","d")*marginal(graph,"d")[1])/marginal(graph)[1]
 
 #Function to calculate the joint probability
-def joint(graph, args):
-	var_list = parse_string(args)
-	print(var_list)
+def joint(graph,a):
+	args = parse_string(a)
+	if len(args) == 2:
+		return conditional(graph,args[0],args[1]) * marginal(graph,a[1])[1]
+	else:
+		return conditional(graph,a[0],a[1]) * joint(a[1],a[2:])
 #Helper functino to return a list of variables from a string
 def parse_string(args):
 	#Store if the last character was a ~
@@ -283,6 +289,21 @@ def parse_string(args):
 			else:
 				arg_list.append(i)
 	return arg_list
+#Takes in string of args, returns list of all possible combos for args
+def joint_combo(args):
+	joint_combo = []
+	#Remove ~ from args
+	args = args.replace("~","")
+	joint_combo.append(args[0])
+	joint_combo.append("~" + args[0])
+	#Iterate through joint var list (Add first arg and ~first arg to joint var list)
+	for i in range(1, len(args)):
+		temp_list = []
+		for var in joint_combo:
+			temp_list.append(var + args[i])
+			temp_list.append(var + "~" + args[i])
+		joint_combo = temp_list
+	return joint_combo
 
 #Only run this if file is beng run directly
 if __name__ == "__main__":
@@ -357,7 +378,7 @@ if __name__ == "__main__":
 			#print("args", a)
 			#print(type(a))
 			'''you may want to parse a here and pass the left of |
-			and right of l as arguments to calcConditional
+			and right of l as arguments to conditional
 			'''
 			p = a.find("l")
 			print(a[:p],"given",a[p+1:])
@@ -365,8 +386,14 @@ if __name__ == "__main__":
 			cond = conditional(b_network,a[:p],a[p+1:])
 			print(cond)
 		elif o in ("-j"):
-			print("flag", o)
-			print("args", a)
-			joint(b_network, a)
+			#print("flag", o)
+			#print("args", a)
+			print("Joint probability for",a)
+			if len(a) < 2:
+				print(marginal(b_network,a))
+			else:
+				print(joint(b_network,a))
+			
+			#calcJointDistribution(b_network,a)
 		else:
 			assert False, "unhandled option"
