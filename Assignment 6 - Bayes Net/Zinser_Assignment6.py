@@ -73,6 +73,9 @@ def conditional(graph, before, after):
 	if before[0] == "~":
 		tilde = True
 		before = before[1]
+	#Check if the before is in the after
+	if before in after:
+		return 1
 	#Get conditional dictionaries for each node
 	pol_cond = graph["Pollution"].get_conditional()
 	smoke_cond = graph["Smoker"].get_conditional()
