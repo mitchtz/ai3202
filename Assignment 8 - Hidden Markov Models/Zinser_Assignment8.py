@@ -1,15 +1,10 @@
 #Mitch Zinser
 #CSCI 3202 Assignment 8
-'''PIPE TO EXTERNAL FILE IN WINDOWS WITH > filename.txt'''
+'''PIPE TO EXTERNAL FILE WITH > filename.txt'''
 letters = 'abcdefghijklmnopqrstuvwxyz'
 
-'''
-Need to consider keeping spaces in dict
-Not returning lists of words
-Removing 'tot' from final dict
-Adding all letters to each dict (since it is 1/(total number of occurances of letter))
-Note:Space characters aren't corrupted, denominator is +26 for emission and +27 for transition
-'''
+#Note:Space characters aren't corrupted, denominator is +26 for emission and +27 for transition
+
 #Converts input file in format of columns 1 = correct word, columns 2 = space, column 3 = wrong word. One letter column, words separated by "_ _"
 #Retuns two lists, first list is words in first column, second list is words in second column
 def data_parser(name):
@@ -24,12 +19,12 @@ def data_parser(name):
 
 	#Emission dict
 	#Dictionary that stores the intended letter as key, and observed letters with frequencies as value
-	emiss_freq = {}
+	emis_freq = {}
 	#Fill dictionary with dictionaries, and those with letter entries (init to 0)
 	for i in letters:
-		emiss_freq[i] = {}
+		emis_freq[i] = {}
 		for j in letters:
-			emiss_freq[i][j] = 0
+			emis_freq[i][j] = 0
 
 	#Transition dictionary
 	#Dictionary that stores the first letter (t) as the key, and second letter (t+1) as the second key with frequencies as value
@@ -84,10 +79,10 @@ def data_parser(name):
 				word2 += i[2]
 
 
-				if i[2] in emiss_freq[i[0]]:
-					emiss_freq[i[0]][i[2]] += 1
+				if i[2] in emis_freq[i[0]]:
+					emis_freq[i[0]][i[2]] += 1
 				else:
-					emiss_freq[i[0]][i[2]] = 1
+					emis_freq[i[0]][i[2]] = 1
 	#Cleanup since data file doesn't end in a "_ _" line
 	first_col.append(word1)
 	second_col.append(word2)
@@ -95,24 +90,26 @@ def data_parser(name):
 	'''Emission Calulations'''
 	#Add entry to dict 'tot' that holds the total number of times the letter appears
 	#Iterate through keys (actual letters)
-	for i in emiss_freq:
+	for i in emis_freq:
 		#Reset total
 		tot = 0
 		#Iterate through evidence keys for letter i
-		for j in emiss_freq[i]:
-			tot += emiss_freq[i][j]
+		for j in emis_freq[i]:
+			tot += emis_freq[i][j]
 		#Add 'tot' entry to dict
-		emiss_freq[i]["tot"] = tot
+		emis_freq[i]["tot"] = tot
 	#Now take this data (total) and create a probability dictionary
-	emiss_prob = {}
+	emis_prob = {}
 	#Iterate through keys (actual letters)
-	for i in emiss_freq:
+	for i in emis_freq:
 		#Create dictionary for this actual letter in new dict
-		emiss_prob[i] = {}
+		emis_prob[i] = {}
 		#Iterate through evidence keys for letter i
-		for j in emiss_freq[i]:
+		for j in emis_freq[i]:
 			#Add one to the numerator and 26 (num of letters) to the denominator
-			emiss_prob[i][j] = (emiss_freq[i][j]+1)/(emiss_freq[i]["tot"]+26)
+			emis_prob[i][j] = (emis_freq[i][j]+1)/(emis_freq[i]["tot"]+26)
+		#Remove 'tot' key from probability dict
+		del emis_prob[i]["tot"]
 
 
 	'''Transition Calulations'''
@@ -136,6 +133,8 @@ def data_parser(name):
 		for j in tran_freq[i]:
 			#Add one to the numerator and 27 (num of letters + '_') to the denominator
 			tran_prob[i][j] = (tran_freq[i][j]+1)/(tran_freq[i]["tot"]+27)
+		#Remove 'tot' key from probability dict
+		del tran_prob[i]["tot"]
 
 	'''Initial Calculations'''
 	#Count the total number of characters in the first col (hidden)
@@ -149,7 +148,7 @@ def data_parser(name):
 	
 
 	#Return both lists as and probability dtionary
-	return first_col,second_col,emiss_prob,tran_prob,init_prob
+	return first_col,second_col,emis_prob,tran_prob,init_prob
 
 if __name__ == "__main__":
 	#Set correct and actual as lists to hold words in each column
@@ -172,14 +171,11 @@ if __name__ == "__main__":
 		for j in sorted(transitional[i]):
 			#Print the number of occurances
 			print(j, transitional[i][j])
+
+
 	#Print Initial
 	print("----------------Initial (Using Hidden)----------------")
 	#Iterate through key of sorted dict
 	for i in sorted(initial):
 		print(i, initial[i])
 
-	'''ANY VALUE NOT IN THE DICT IS AUTOMATICALLY 1/27'''
-	'''
-	print(correct[1])
-	print(actual[1])
-	'''
