@@ -2,7 +2,8 @@
 #CSCI 3202 Assignment 8
 '''PIPE TO EXTERNAL FILE WITH > filename.txt'''
 letters = 'abcdefghijklmnopqrstuvwxyz'
-
+'''File to read in data from, change this name to read from other files'''
+file_name = "typos20Test.data"
 #Note:Space characters aren't corrupted, denominator is +26 for emission and +27 for transition
 
 #Converts input file in format of columns 1 = correct word, columns 2 = space, column 3 = wrong word. One letter column, words separated by "_ _"
@@ -151,13 +152,14 @@ def data_parser(name):
 	return first_col,second_col,emis_prob,tran_prob,init_prob
 
 if __name__ == "__main__":
+	
 	#Set correct and actual as lists to hold words in each column
-	correct,actual,conditional,transitional,initial = data_parser("typos20.data")
+	correct,actual,conditional,transitional,initial = data_parser(file_name)
 	#Print conditional
 	print("----------------Condition----------------")
 	#Iterate through keys of a sorted dictionary
 	for i in sorted(conditional):
-		print("--------Hidden(X):",i,"--------")
+		print("--------Hidden:",i,"--------")
 		#Iterate through keys of dict in dict (value dict to the key "i")
 		for j in sorted(conditional[i]):
 			#Print the number of occurances
@@ -166,7 +168,7 @@ if __name__ == "__main__":
 	print("----------------Transition----------------")
 	#Iterate through keys of a sorted dictionary
 	for i in sorted(transitional):
-		print("--------Hidden(X):",i,"--------")
+		print("--------Hidden:",i,"--------")
 		#Iterate through keys of dict in dict (value dict to the key "i")
 		for j in sorted(transitional[i]):
 			#Print the number of occurances

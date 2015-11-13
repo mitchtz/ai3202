@@ -1,0 +1,1 @@
+To change the file that is read from, change the variable "file_name". The program will create an HM from whatever file is specified here.
