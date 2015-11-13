@@ -43,20 +43,32 @@ def data_parser(name):
 	#Initial dictionary
 	#Dictionary to store frequency that a letter occurs in the first col (hidden, actual)
 	init_freq = {}
-	#Fill dictionary with dictionaries, and those with letter entries (init to 0)
-	for i in (letters):
+	#Fill dictionary with letter entries (init to 0)
+	for i in (letters+"_"):
 		init_freq[i] = 0
 
 
 	#Open the file
 	with open(name,"r") as data_in:
-		#Save the last letter
-		last_let = ""
-		#Don't run the loop the same the first time to account for no starting place in the transition dict
-		first_run = True
+		#Store the last char
+		last_char = ""
+		#Bool to see if this is the rist char
+		first_char = True
 		#Iterate through the file line by line
 		for i in data_in.readlines():
-
+			#Initial
+			#Increment the first col characters frequency in the intial dict
+			init_freq[i[0]] += 1
+			#Transition
+			#Make sure this isn't the first
+			if first_char:
+				first_char = False
+			#Otherwise add to the transition frequency dict
+			else:
+				tran_freq[last_char][i[0]] += 1
+			#Set the last char to be the current first col char that we have added to the dict
+			last_char = i[0]
+			
 			#Check if this line is a separation between words ("_ _")
 			if i[0] == "_":
 				#Append word to list of words
@@ -99,50 +111,72 @@ def data_parser(name):
 		emiss_prob[i] = {}
 		#Iterate through evidence keys for letter i
 		for j in emiss_freq[i]:
-			#Add one to the numerator and 26 (num of letters + '_') to the denominator
+			#Add one to the numerator and 26 (num of letters) to the denominator
 			emiss_prob[i][j] = (emiss_freq[i][j]+1)/(emiss_freq[i]["tot"]+26)
 
+
 	'''Transition Calulations'''
-	#Dictionary that stores the first letter (t) as the key, and second letter (t+1) as the second key with frequencies as value
-	tran_freq = {}
-	#Fill dictionary with dictionaries, and those with letter entries (init to 0)
-	for i in (letters+"_"):
-		tran_freq[i] = {}
-		for j in (letters+"_"):
-			tran_freq[i][j] = 0
-	#Iterate through list of hidden (state, left col) and calculate transitional frequencies
-	#Iterate through words
-	for i in first_col:
-		#Iterate through letters of word
-		for j in i:
-			#Add entry with 
-			pass
+	#Add entry to dict 'tot' that holds the total number of times the letter appears
+	#Iterate through keys (actual letters)
+	for i in tran_freq:
+		#Reset total
+		tot = 0
+		#Iterate through evidence keys for letter i
+		for j in tran_freq[i]:
+			tot += tran_freq[i][j]
+		#Add 'tot' entry to dict
+		tran_freq[i]["tot"] = tot
+	#Now take this data (total) and create a probability dictionary
+	tran_prob = {}
+	#Iterate through keys (actual letters)
+	for i in tran_freq:
+		#Create dictionary for this actual letter in new dict
+		tran_prob[i] = {}
+		#Iterate through evidence keys for letter i
+		for j in tran_freq[i]:
+			#Add one to the numerator and 27 (num of letters + '_') to the denominator
+			tran_prob[i][j] = (tran_freq[i][j]+1)/(tran_freq[i]["tot"]+27)
 
 	'''Initial Calculations'''
-	#Dictionary to store frequency that a letter occurs in the first col (hidden, actual)
-	init_freq = {}
-	#Fill dictionary with dictionaries, and those with letter entries (init to 0)
-	for i in (letters):
-		init_freq[i] = 0
-	#Freq of "_" is 1 less than the number of the words (one less b/c no space at beginning or end)
-	init_freq["_"] = len(first_col)-1
-	#Total number of chars in the hidden (actual, first col), starts at len of "_"
-	init_tot = init_freq["_"]
-	#Iterate through 
+	#Count the total number of characters in the first col (hidden)
+	tot = 0
+	for i in init_freq:
+		tot += init_freq[i]
+	#Dict that stores the probabilities of each letter
+	init_prob = {}
+	for i in init_freq:
+		init_prob[i] = (init_freq[i]/tot)
+	
 
 	#Return both lists as and probability dtionary
-	return first_col,second_col,emiss_prob
+	return first_col,second_col,emiss_prob,tran_prob,init_prob
 
 if __name__ == "__main__":
 	#Set correct and actual as lists to hold words in each column
-	correct, actual,dict_let = data_parser("typos20.data")
+	correct,actual,conditional,transitional,initial = data_parser("typos20.data")
+	#Print conditional
+	print("----------------Condition----------------")
 	#Iterate through keys of a sorted dictionary
-	for i in sorted(dict_let):
-		print("--------Intended:",i,"--------")
+	for i in sorted(conditional):
+		print("--------Hidden(X):",i,"--------")
 		#Iterate through keys of dict in dict (value dict to the key "i")
-		for j in sorted(dict_let[i]):
+		for j in sorted(conditional[i]):
 			#Print the number of occurances
-			print(j, dict_let[i][j])
+			print(j, conditional[i][j])
+	#Print transitional
+	print("----------------Transition----------------")
+	#Iterate through keys of a sorted dictionary
+	for i in sorted(transitional):
+		print("--------Hidden(X):",i,"--------")
+		#Iterate through keys of dict in dict (value dict to the key "i")
+		for j in sorted(transitional[i]):
+			#Print the number of occurances
+			print(j, transitional[i][j])
+	#Print Initial
+	print("----------------Initial (Using Hidden)----------------")
+	#Iterate through key of sorted dict
+	for i in sorted(initial):
+		print(i, initial[i])
 
 	'''ANY VALUE NOT IN THE DICT IS AUTOMATICALLY 1/27'''
 	'''
